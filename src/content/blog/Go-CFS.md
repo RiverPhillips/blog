@@ -1,5 +1,5 @@
 ---
-title: 'Go and the Completely Fair Scheduler'
+title: 'Go, Containers, and the Linux Scheduler'
 description: 'How to make the Go runtime play nicely with the Linux Scheduler'
 pubDate: 'Nov 04 2023'
 heroImage: '/Gopher.jpg'
@@ -22,13 +22,13 @@ This means that the GC is running at the same time as your program. However, the
 This is required to ensure data integrity. Before the Mark Phase of the GC the runtime stops every Goroutine to apply the write barrier, this ensures no objects created after this point are garbage collected. This phase is known as Sweep Termination.
 After the mark phase has finished there is another stop the world phase, this is known as Mark Termination and the same process happens to remove the write barrier. These usually takes in the order of tens of microseconds.
 
-I created a simple web application that allocates a lot of memory and ran it with the Go trace package. And ran it in a container with a limit of 4 CPU cores with the following command
+I created a simple web application that allocates a lot of memory and ran it in a container with a limit of 4 CPU cores with the following command.The Source code for this is available [here.](https://github.com/RiverPhillips/go-cfs-blog)
 
 ```bash
 docker run -p 8080:8080 $(ko build -L main.go) --cpus=4
 ```
 
-You can collect a trace using the [runtime/trace](https://golang.org/pkg/runtime/trace/) package. The following trace shows a GC cycle captured on my machine. You can see the Sweep Termination and the Mark Termination stop the world phase on `Proc 5` (They're labelled STW).
+You can collect a trace using the [runtime/trace](https://golang.org/pkg/runtime/trace/) package then analyze it with `go tool trace`. The following trace shows a GC cycle captured on my machine. You can see the Sweep Termination and the Mark Termination stop the world phase on `Proc 5` (They're labelled STW for stop the world).
 
 [![GC Trace](/gc_trace.jpg)](/gc_trace.jpg)
 
@@ -40,18 +40,17 @@ The [Completely Fair Scheduler (CFS)](https://docs.kernel.org/scheduler/sched-de
 
 The CFS is a [proportional share scheduler](https://en.wikipedia.org/wiki/Proportional_share_scheduling), this means that the weight of a process is proportional to the number of CPU cores it is allowed to use. For example, if a process is allowed to use 4 CPU cores it will have a weight of 4. If a process is allowed to use 2 CPU cores it will have a weight of 2.
 
-The CFS does this by allocating a fraction of CPU time. A 4 core system has 4 seconds of CPU time to allocate Every second (The CFS is working on much smaller time slices than 1 second but this is enough). When you allocate a container a number of CPU cores you're essentially asking the Linux Scheduler to give it `n` CPUs worth of time.
+The CFS does this by allocating a fraction of CPU time. A 4 core system has 4 seconds of CPU time to allocate every second. When you allocate a container a number of CPU cores you're essentially asking the Linux Scheduler to give it `n` CPUs worth of time.
 
 In the above `docker run` command I'm asking for 4 CPUs worth of time. This means that the container will get 4 seconds of CPU time every second.
 
 ## The Problem
 
-When the Go runtime starts it creates an OS thread for each CPU core. This means if you have a 16 core machine the Go runtime will create 16 OS threads - regardless of any CGroup CPU Limits.
-The Go runtime then uses these OS threads to schedule goroutines.
+When the Go runtime starts it creates an OS thread for each CPU core. This means if you have a 16 core machine the Go runtime will create 16 OS threads - regardless of any CGroup CPU Limits. The Go runtime then uses these OS threads to schedule goroutines.
 
 The problem is that the Go runtime is not aware of the CGroup CPU limits and will happily schedule goroutines on all 16 OS threads. This means that the Go runtime will expect to be able to use 16 seconds of CPU time every second.
 
-Long stop the world durations arise from the Go runtime trying to stop Goroutine on threads that it's waiting for the Linux Scheduler to schedule. This is because the Linux Scheduler is not scheduling the Go runtime threads because it's already used up it's CPU time allocation.
+Long stop the world durations arise from the Go runtime needing to stop Goroutine on threads that it's waiting for the Linux Scheduler to schedule. These threads will not be scheduled once the container has used it's CPU quota.
 
 ## The Solution
 
