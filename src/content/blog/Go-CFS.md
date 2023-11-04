@@ -25,7 +25,8 @@ After the mark phase has finished there is another stop the world phase, this is
 I created a simple web application that allocates a lot of memory and ran it in a container with a limit of 4 CPU cores with the following command.The Source code for this is available [here.](https://github.com/RiverPhillips/go-cfs-blog)
 
 ```bash
-docker run -p 8080:8080 $(ko build -L main.go) --cpus=4
+docker run --cpus=4 -p 8080:8080 $(ko build -L main.go)
+
 ```
 
 You can collect a trace using the [runtime/trace](https://golang.org/pkg/runtime/trace/) package then analyze it with `go tool trace`. The following trace shows a GC cycle captured on my machine. You can see the Sweep Termination and the Mark Termination stop the world phase on `Proc 5` (They're labelled STW for stop the world).
@@ -54,7 +55,14 @@ Long stop the world durations arise from the Go runtime needing to stop Goroutin
 
 ## The Solution
 
-Go allows you to limit the number of CPU threads that the runtime will create using the `GOMAXPROCS` environment variable. Below is a trace captured from the same application as above but with `GOMAXPROCS` set to 4.
+Go allows you to limit the number of CPU threads that the runtime will create using the `GOMAXPROCS` environment variable.
+This time I used the following command to start the container
+
+```bash
+docker run --cpus=4 -e GOMAXPROCS=4 -p 8080:8080 $(ko build -L main.go)
+```
+
+Below is a trace captured from the same application as above, now with the `GOMAXPROCS` environment variable matching the CPU quota.
 
 [![GC Trace](/gc_trace_4.jpg)](/gc_trace_4.jpg)
 
