@@ -1,7 +1,7 @@
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
-
+import vercel from "@astrojs/vercel/serverless";
 import sentry from "@sentry/astro";
 
 // https://astro.build/config
@@ -13,5 +13,7 @@ export default defineConfig({
 			project: "blog",
 			authToken: process.env.SENTRY_AUTH_TOKEN,
 		}
-	})]
+	})],
+	output: "hybrid",
+	adapter: vercel()
 });
