@@ -3,6 +3,11 @@ import BaseHead from "@components/BaseHead.astro";
 import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
 import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
+import { Image } from "astro:assets";
+
+import imageOfMe from "../assets/images/me.jpg";
+
+export const prerender = true;
 ---
 
 <!doctype html>
@@ -14,30 +19,32 @@ import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
 		<Header title={SITE_TITLE} />
 		<main>
 			<h1>River Phillips</h1>
-			<img class="me" src="/me.jpg" alt="River Phillips" />
+			<Image
+				src={imageOfMe}
+				alt="River Phillips"
+				height="250"
+				width="250"
+				class="me"
+			/>
 			<p>
 				Hey there! I'm River. For the last 3 years I've been working as
-				a Software Engineer in London for various Fintech and ecommerce companies.
-				I'm currently working as a Platform Engineer focussing on building 
-				Cloud Native solutions with Kubernetes to make developers lives easier.
+				a Software Engineer in London for various Fintech and ecommerce
+				companies. I'm currently working as a Platform Engineer
+				focussing on building Cloud Native solutions with Kubernetes to
+				make developers lives easier.
 			</p>
 			<p>
 				I Enjoy contributing to Open Source projects, some great
 				projects that I have been able to contribute to are:
 				<ul>
-					<li>
-						Envoy Proxy
-					</li>
-					<li>
-						Terraform
-					</li>
-					<li>
-						TestContainers
-					</li>
+					<li>Envoy Proxy</li>
+					<li>Terraform</li>
+					<li>TestContainers</li>
 				</ul>
 			</p>
 			<p>
-				When I'm not working I enjoy cycling, being nerdy about coffee and cooking.
+				When I'm not working I enjoy cycling, being nerdy about coffee
+				and cooking.
 			</p>
 		</main>
 		<Footer />
@@ -45,8 +52,7 @@ import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
 			h1 {
 				text-align: center;
 			}
-			img.me {
-				height: 250px;
+			.me {
 				border-radius: 50%;
 				margin: 0 auto;
 				/* Center the image*/
