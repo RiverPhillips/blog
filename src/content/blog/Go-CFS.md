@@ -3,6 +3,7 @@ title: 'Go, Containers, and the Linux Scheduler'
 description: 'How to make the Go runtime play nicely with the Linux Scheduler'
 pubDate: 'Nov 04 2023'
 heroImage: '/Gopher.jpg'
+updatedDate: 'Nov 07 2023'
 ---
 
 Like many Go developers my applications are usually deployed in containers.
@@ -28,6 +29,8 @@ I created a simple web application that allocates a lot of memory and ran it in 
 docker run --cpus=4 -p 8080:8080 $(ko build -L main.go)
 
 ```
+
+It's worth noting the docker CPU limit is a soft limit, meaning it's only enforced when the host is CPU constrained. This means that the container can use more than 4 CPU cores if the host has spare capacity.
 
 You can collect a trace using the [runtime/trace](https://golang.org/pkg/runtime/trace/) package then analyze it with `go tool trace`. The following trace shows a GC cycle captured on my machine. You can see the Sweep Termination and the Mark Termination stop the world phase on `Proc 5` (They're labelled STW for stop the world).
 
