@@ -2,7 +2,7 @@
 title: 'Go, Containers, and the Linux Scheduler'
 description: 'How to make the Go runtime play nicely with the Linux Scheduler'
 pubDate: 'Nov 04 2023'
-heroImage: '/Gopher.jpg'
+heroImage: '../../assets/images/blog/go-cfs/Gopher.jpg'
 updatedDate: 'Nov 07 2023'
 ---
 
@@ -34,7 +34,7 @@ It's worth noting the docker CPU limit is a soft limit, meaning it's only enforc
 
 You can collect a trace using the [runtime/trace](https://golang.org/pkg/runtime/trace/) package then analyze it with `go tool trace`. The following trace shows a GC cycle captured on my machine. You can see the Sweep Termination and the Mark Termination stop the world phase on `Proc 5` (They're labelled STW for stop the world).
 
-[![GC Trace](/gc_trace.jpg)](/gc_trace.jpg)
+![GC Trace](../../assets/images/blog/go-cfs/gc_trace.jpg)
 
 This GC cycle took just under 2.5ms, but we spent almost 10% of that in a stop the world phase. This is a pretty significant amount of time, especially if you are running a latency sensitive application.
 
@@ -67,7 +67,7 @@ docker run --cpus=4 -e GOMAXPROCS=4 -p 8080:8080 $(ko build -L main.go)
 
 Below is a trace captured from the same application as above, now with the `GOMAXPROCS` environment variable matching the CPU quota.
 
-[![GC Trace](/gc_trace_4.jpg)](/gc_trace_4.jpg)
+![GC Trace](../../assets/images/blog/go-cfs/gc_trace_4.jpg)
 
 In this trace, the garbage collection is much shorter, despite having the exact same load. The GC Cycle took under 1ms and the stop the world phase was 26μs, approximately 1/10 of the time when there was no limit.
 
