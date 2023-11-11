@@ -8,5 +8,12 @@ export default defineConfig({
 	site: 'https://www.riverphillips.dev/',
 	integrations: [mdx(), sitemap()],
 	output: "server",
-	adapter: vercel()
+	adapter: vercel({
+		webAnalytics: {
+			enabled: true,
+		},
+		speedInsights: {
+			enabled: true,
+		},
+	})
 });
