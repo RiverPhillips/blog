@@ -62,7 +62,7 @@ Go allows you to limit the number of CPU threads that the runtime will create us
 This time I used the following command to start the container
 
 ```bash
-docker run --cpus=4 -e GOMAXPROCS=4 -p 8080:8080 $(ko build -L main.go)
+docker run --cpus=4 -e GOMAXPROCS=4 -p 8080:8080 $(go build -L main.go)
 ```
 
 Below is a trace captured from the same application as above, now with the `GOMAXPROCS` environment variable matching the CPU quota.
