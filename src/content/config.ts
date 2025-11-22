@@ -8,9 +8,7 @@ const blog = defineCollection({
 		// Transform string to Date object
 		pubDate: z.coerce.date(),
 		updatedDate: z.coerce.date().optional(),
-		heroImage: image().refine((img) => img.width >= 1080, {
-			message: 'Hero image should be at least 1080px wide',
-		}),
+		heroImage: image(),
 	}),
 });
 

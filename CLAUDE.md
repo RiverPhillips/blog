@@ -26,8 +26,8 @@ Blog posts are managed through Astro's Content Collections system:
 - Content schema is defined in `src/content/config.ts` with Zod validation
 - Required frontmatter: `title`, `description`, `pubDate`, `heroImage`
 - Optional frontmatter: `updatedDate`
-- Hero images must be at least 1080px wide (enforced by schema validation)
 - Posts are retrieved using `getCollection('blog')` from `astro:content`
+- Note: Astro 5 no longer supports custom validation with `image().refine()` - basic image() schema only
 
 ### Routing
 
